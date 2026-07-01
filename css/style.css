@@ -1,0 +1,357 @@
+/* =========================================================================
+   GESTURE VISION — Design Tokens
+   Palette:
+     --void        #06070A  (background, near-black)
+     --void-2      #0D0F14  (card backgrounds)
+     --cyan        #5EEAD4  (tracking / accent)
+     --cyan-dim    #2C7A70
+     --warn        #FF6B6B  (unused for errors)
+     --line        rgba(255,255,255,0.09)
+     --text        #F3F5F7
+     --text-dim    #8B93A1
+   Type:
+     Display -> 'Space Grotesk'   (title / headline)
+     Body    -> 'Inter'           (copy, buttons)
+     Mono    -> 'JetBrains Mono'  (HUD data, coordinates, FPS)
+   ========================================================================= */
+
+:root{
+  --void:#06070A;
+  --void-2:#0D0F14;
+  --cyan:#5EEAD4;
+  --cyan-dim:#2C7A70;
+  --warn:#FF6B6B;
+  --line:rgba(255,255,255,0.09);
+  --text:#F3F5F7;
+  --text-dim:#8B93A1;
+
+  --blur-amount: 18px;
+  --blur-transition: .45s ease;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html, body{
+  width:100%; height:100%;
+  background:var(--void);
+  color:var(--text);
+  font-family:'Inter', system-ui, sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+.mono{ font-family:'JetBrains Mono', monospace; letter-spacing:.02em; }
+
+/* ---------- Glassmorphism base ---------- */
+.glass{
+  background:rgba(13,15,20,0.55);
+  backdrop-filter:blur(14px) saturate(140%);
+  -webkit-backdrop-filter:blur(14px) saturate(140%);
+  border:1px solid var(--line);
+}
+
+/* =========================================================================
+   PERMISSION SCREEN
+   ========================================================================= */
+.permission-screen{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(94,234,212,0.08), transparent 55%),
+    var(--void);
+  animation:fadeIn .6s ease both;
+}
+
+.permission-card{
+  max-width:460px;
+  width:100%;
+  padding:40px 36px;
+  border-radius:20px;
+  text-align:left;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);
+}
+
+.permission-icon{
+  color:var(--cyan);
+  margin-bottom:18px;
+}
+
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  letter-spacing:.22em;
+  color:var(--cyan);
+  margin-bottom:14px;
+}
+
+.eyebrow-mini{
+  font-family:'JetBrains Mono', monospace;
+  font-size:10px;
+  letter-spacing:.18em;
+  color:var(--text-dim);
+}
+
+.permission-card h1{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:26px;
+  line-height:1.25;
+  font-weight:700;
+  margin-bottom:14px;
+}
+
+.permission-copy{
+  color:var(--text-dim);
+  font-size:14.5px;
+  line-height:1.6;
+  margin-bottom:26px;
+}
+
+.btn-primary{
+  width:100%;
+  padding:14px 20px;
+  border-radius:12px;
+  border:none;
+  background:var(--cyan);
+  color:#06110F;
+  font-family:'Inter', sans-serif;
+  font-weight:600;
+  font-size:15px;
+  cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease;
+  box-shadow:0 10px 30px rgba(94,234,212,0.18);
+}
+.btn-primary:hover{ transform:translateY(-1px); box-shadow:0 14px 36px rgba(94,234,212,0.28); }
+.btn-primary:active{ transform:translateY(0); }
+
+.permission-error{
+  margin-top:16px;
+  font-size:13px;
+  color:var(--warn);
+}
+
+/* =========================================================================
+   MAIN STAGE
+   ========================================================================= */
+.stage{
+  position:fixed; inset:0;
+  background:#000;
+}
+
+/* Fullscreen camera preview */
+.camera-wrap{
+  position:absolute; inset:0;
+  overflow:hidden;
+}
+
+.camera-feed{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  transform:scaleX(-1); /* mirror, like a selfie camera */
+
+  /* Smooth blur transition driven by JS toggling .is-blurred */
+  filter:blur(0px);
+  transition: filter var(--blur-transition), transform .6s ease;
+}
+
+.camera-feed.is-blurred{
+  filter:blur(var(--blur-amount));
+  transform:scaleX(-1) scale(1.06); /* slight zoom to hide blurred edges */
+}
+
+.overlay-canvas{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  transform:scaleX(-1);
+  pointer-events:none;
+}
+
+/* Dark overlay ~20% opacity for cinematic contrast */
+.dim-overlay{
+  position:absolute; inset:0;
+  background:rgba(0,0,0,0.20);
+  pointer-events:none;
+}
+
+/* Subtle glow across the frame while blur is active */
+.camera-wrap::after{
+  content:"";
+  position:absolute; inset:0;
+  pointer-events:none;
+  box-shadow: inset 0 0 0 0 rgba(94,234,212,0);
+  transition: box-shadow var(--blur-transition);
+}
+.camera-wrap.is-active::after{
+  box-shadow: inset 0 0 120px 10px rgba(94,234,212,0.16);
+}
+
+/* ---------- Flash effect (fires just before blur engages) ---------- */
+.flash{
+  position:absolute; inset:0;
+  background:#fff;
+  opacity:0;
+  pointer-events:none;
+}
+.flash.fire{
+  animation:flashPulse .35s ease-out;
+}
+@keyframes flashPulse{
+  0%{ opacity:0; }
+  15%{ opacity:.9; }
+  100%{ opacity:0; }
+}
+
+/* ---------- Cinematic letterbox bars ---------- */
+.letterbox{
+  position:absolute; left:0; right:0;
+  height:0;
+  background:#000;
+  z-index:5;
+  transition:height .5s ease;
+  pointer-events:none;
+}
+.letterbox-top{ top:0; }
+.letterbox-bottom{ bottom:0; }
+.stage.is-blurred .letterbox{ height:5%; }
+
+/* =========================================================================
+   VIEWFINDER — signature element
+   Corner brackets that glow cyan on tracking, tighten + warm on gesture fire
+   ========================================================================= */
+.viewfinder{
+  position:absolute; inset:6% 6%;
+  pointer-events:none;
+  z-index:6;
+  transition: inset .45s ease;
+}
+.stage.is-blurred .viewfinder{ inset:10% 10%; }
+
+.bracket{
+  position:absolute;
+  width:34px; height:34px;
+  border:2.5px solid var(--cyan);
+  opacity:.55;
+  transition: opacity .3s ease, border-color .3s ease, width .3s ease, height .3s ease;
+}
+.stage.is-blurred .bracket{ opacity:.95; border-color:#fff; }
+
+.bracket-tl{ top:0; left:0; border-right:none; border-bottom:none; border-radius:6px 0 0 0; }
+.bracket-tr{ top:0; right:0; border-left:none; border-bottom:none; border-radius:0 6px 0 0; }
+.bracket-bl{ bottom:0; left:0; border-right:none; border-top:none; border-radius:0 0 0 6px; }
+.bracket-br{ bottom:0; right:0; border-left:none; border-top:none; border-radius:0 0 6px 0; }
+
+/* =========================================================================
+   HUD — top status bar & bottom gesture readout
+   ========================================================================= */
+.hud{
+  position:absolute; left:0; right:0;
+  z-index:10;
+  display:flex; align-items:center;
+  padding:16px 22px;
+  gap:16px;
+}
+
+.hud-top{
+  top:0;
+  justify-content:space-between;
+}
+
+.hud-item{ display:flex; align-items:center; gap:10px; }
+.hud-title{ opacity:.9; }
+
+.hud-dot{
+  width:9px; height:9px;
+  border-radius:50%;
+  background:var(--text-dim);
+  box-shadow:0 0 0 rgba(94,234,212,0);
+  transition:background .25s ease, box-shadow .25s ease;
+}
+.hud-dot.tracking{
+  background:var(--cyan);
+  box-shadow:0 0 10px 2px rgba(94,234,212,0.6);
+}
+.hud-dot.raised{
+  background:#fff;
+  box-shadow:0 0 12px 3px rgba(255,255,255,0.8);
+}
+
+#statusText{ font-size:12px; color:var(--text-dim); }
+#fpsCounter{ font-size:12px; color:var(--text-dim); }
+
+.hud-bottom{
+  bottom:0;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+.gesture-readout{
+  display:flex; flex-direction:column; gap:4px;
+  min-width:120px;
+}
+
+.gesture-state{
+  font-size:15px;
+  font-weight:500;
+  color:var(--cyan);
+  transition:color .3s ease;
+}
+.gesture-state.raised{ color:#fff; text-shadow:0 0 12px rgba(255,255,255,0.7); }
+
+.hint{
+  color:var(--text-dim);
+  font-size:12.5px;
+  flex:1;
+  text-align:center;
+  min-width:180px;
+}
+
+.btn-ghost{
+  background:transparent;
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:9px 14px;
+  border-radius:10px;
+  font-size:11.5px;
+  cursor:pointer;
+  transition:border-color .2s ease, background .2s ease;
+}
+.btn-ghost:hover{ border-color:var(--cyan); background:rgba(94,234,212,0.08); }
+.btn-ghost[aria-pressed="true"]{ color:var(--text-dim); }
+
+/* =========================================================================
+   MISC
+   ========================================================================= */
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(6px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+[hidden]{ display:none !important; }
+
+/* =========================================================================
+   RESPONSIVE — phones & narrow viewports
+   ========================================================================= */
+@media (max-width: 640px){
+  .permission-card{ padding:30px 22px; border-radius:16px; }
+  .permission-card h1{ font-size:21px; }
+
+  .hud{ padding:12px 14px; }
+  .hud-top{ flex-wrap:wrap; row-gap:8px; }
+  .hud-title{ order:3; width:100%; justify-content:center; }
+
+  .hud-bottom{ flex-direction:column; align-items:flex-start; gap:8px; }
+  .hint{ text-align:left; order:3; }
+  .btn-ghost{ align-self:flex-end; }
+
+  .viewfinder{ inset:4% 4%; }
+  .bracket{ width:24px; height:24px; }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce){
+  .camera-feed, .letterbox, .viewfinder, .bracket, .flash{
+    transition-duration:.01ms !important;
+    animation-duration:.01ms !important;
+  }
+}

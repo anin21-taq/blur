@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Gesture Vision — Hand Tracking Camera</title>
+
+  <!-- Fonts: display (Space Grotesk), body (Inter), HUD/mono (JetBrains Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ===================== PRE-PERMISSION SCREEN ===================== -->
+  <!-- Shown before camera access is granted. Requires a user gesture (tap)
+       so that audio playback later is allowed by browser autoplay policy. -->
+  <section id="permissionScreen" class="permission-screen">
+    <div class="permission-card glass">
+      <div class="permission-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="40" height="40">
+          <rect x="8" y="18" width="40" height="30" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M48 26 L58 20 V44 L48 38" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+          <circle cx="26" cy="33" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        </svg>
+      </div>
+      <p class="eyebrow">GESTURE VISION</p>
+      <h1>Nyalakan kamera untuk mulai melacak gerakan tanganmu</h1>
+      <p class="permission-copy">
+        Website ini membaca posisi tanganmu langsung dari browser — tidak ada video yang
+        dikirim ke server mana pun. Angkat tangan di atas bahu untuk memicu efek sinematik.
+      </p>
+      <button id="enableCameraBtn" class="btn-primary">Aktifkan Kamera</button>
+      <p id="permissionError" class="permission-error" hidden></p>
+    </div>
+  </section>
+
+  <!-- ===================== MAIN CAMERA STAGE ===================== -->
+  <main id="stage" class="stage" hidden>
+
+    <!-- Cinematic letterbox bars, purely decorative -->
+    <div class="letterbox letterbox-top" aria-hidden="true"></div>
+    <div class="letterbox letterbox-bottom" aria-hidden="true"></div>
+
+    <!-- Camera feed + canvas overlay for landmark drawing -->
+    <div id="cameraWrap" class="camera-wrap">
+      <video id="video" class="camera-feed" playsinline autoplay muted></video>
+      <canvas id="overlayCanvas" class="overlay-canvas"></canvas>
+
+      <!-- Dark transparent overlay, ~20% -->
+      <div class="dim-overlay" aria-hidden="true"></div>
+
+      <!-- Flash element for the cinematic white flash before blur -->
+      <div id="flash" class="flash" aria-hidden="true"></div>
+    </div>
+
+    <!-- Viewfinder corner brackets (signature element) -->
+    <div class="viewfinder" aria-hidden="true">
+      <span class="bracket bracket-tl"></span>
+      <span class="bracket bracket-tr"></span>
+      <span class="bracket bracket-bl"></span>
+      <span class="bracket bracket-br"></span>
+    </div>
+
+    <!-- Top HUD bar -->
+    <header class="hud hud-top glass">
+      <div class="hud-item">
+        <span class="hud-dot" id="statusDot"></span>
+        <span id="statusText" class="mono">MENCARI TANGAN…</span>
+      </div>
+      <div class="hud-item hud-title">
+        <span class="eyebrow-mini">GESTURE VISION</span>
+      </div>
+      <div class="hud-item">
+        <span class="mono" id="fpsCounter">-- FPS</span>
+      </div>
+    </header>
+
+    <!-- Bottom HUD: gesture state + threshold guide -->
+    <footer class="hud hud-bottom glass">
+      <div class="gesture-readout">
+        <span class="eyebrow-mini">GESTURE</span>
+        <span id="gestureState" class="gesture-state mono">NETRAL</span>
+      </div>
+      <div class="hint">Angkat tangan melewati garis bahu untuk mengaktifkan blur</div>
+      <button id="muteBtn" class="btn-ghost mono" aria-pressed="false">🔊 SUARA ON</button>
+    </footer>
+
+  </main>
+
+  <!-- Hidden audio element, played programmatically on gesture trigger -->
+  <audio id="blurSound" src="assets/audio/blur.mp3" preload="auto"></audio>
+
+  <!-- ===================== SCRIPTS ===================== -->
+  <!-- MediaPipe Hands (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <script src="js/handDetection.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
